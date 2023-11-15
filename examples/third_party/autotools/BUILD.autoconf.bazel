@@ -13,15 +13,15 @@ filegroup(
 configure_make(
     name = "autoconf",
     build_data = [
-        "@m4",
+        "@m4//:m4_exe",
     ],
     env = select({
         "@platforms//os:macos": {
             "AR": "",
-            "M4": "$$EXT_BUILD_DEPS$$/bin/m4/bin/m4",
+            "M4": "$(execpath @m4//:m4_exe)",
         },
         "//conditions:default": {
-            "M4": "$$EXT_BUILD_DEPS$$/bin/m4/bin/m4",
+            "M4": "$(execpath @m4//:m4_exe)",
         },
     }),
     lib_source = ":all_srcs",

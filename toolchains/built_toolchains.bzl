@@ -26,7 +26,7 @@ filegroup(
 """
 
 # buildifier: disable=unnamed-macro
-def built_toolchains(cmake_version, make_version, ninja_version, meson_version, pkgconfig_version, register_toolchains, register_built_pkgconfig_toolchain):
+def built_toolchains(cmake_version, make_version, ninja_version, meson_version, pkgconfig_version, autoconf_version, register_toolchains, register_built_pkgconfig_toolchain):
     """
     Register toolchains for built tools that will be built from source
 
@@ -50,6 +50,7 @@ def built_toolchains(cmake_version, make_version, ninja_version, meson_version, 
     _make_toolchain(make_version, register_toolchains)
     _ninja_toolchain(ninja_version, register_toolchains)
     _meson_toolchain(meson_version, register_toolchains)
+    _autoconf_toolchain(autoconf_version, register_toolchains)
 
     if register_built_pkgconfig_toolchain:
         _pkgconfig_toolchain(pkgconfig_version, register_toolchains)
@@ -284,3 +285,25 @@ cc_import(
         return
 
     fail("Unsupported pkgconfig version: " + str(version))
+
+def _autoconf_toolchain(version, register_toolchains):
+    if register_toolchains:
+        native.register_toolchains(
+            "@rules_foreign_cc//toolchains:built_autoconf_toolchain",
+        )
+    if version == "2.71":
+        maybe(
+            http_archive,
+            name = "autoconf_src",
+            build_file_content = _ALL_CONTENT,
+            sha256 = "431075ad0bf529ef13cb41e9042c542381103e80015686222b8a9d4abef42a1c",
+            strip_prefix = "autoconf-2.71",
+            urls = [
+                "http://ftp.gnu.org/gnu/autoconf/autoconf-2.71.tar.gz",
+                "http://ftpmirror.gnu.org/gnu/autoconf/autoconf-2.71.tar.gz",
+                # Would be nice: "https://mirror.bazel.build/ftpmirror.gnu.org/gnu/autoconf/autoconf-2.71.tar.gz",
+            ],
+        )
+        return
+
+    fail("Unsupported autoconf version: " + str(version))

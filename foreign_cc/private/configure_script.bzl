@@ -24,7 +24,8 @@ def create_configure_script(
         autogen_command,
         autogen_options,
         make_path,
-        make_commands):
+        make_commands,
+        autoconf_path):
     ext_build_dirs = inputs.ext_build_dirs
 
     script = pkgconfig_script(ext_build_dirs)
@@ -64,7 +65,7 @@ def create_configure_script(
         script.append("{env_vars} {autoreconf} {options}".format(
             env_vars = env_vars_string,
             # TODO: Pass autoreconf via a toolchain
-            autoreconf = "autoreconf",
+            autoreconf = autoconf_path,
             options = " ".join(autoreconf_options),
         ).lstrip())
 

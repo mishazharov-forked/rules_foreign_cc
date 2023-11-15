@@ -18,13 +18,14 @@ load(
     "expand_locations_and_make_variables",
 )
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
-load("//toolchains/native_tools:tool_access.bzl", "get_make_data", "get_pkgconfig_data")
+load("//toolchains/native_tools:tool_access.bzl", "get_make_data", "get_pkgconfig_data", "get_autoconf_data")
 
 def _configure_make(ctx):
     make_data = get_make_data(ctx)
     pkg_config_data = get_pkgconfig_data(ctx)
+    autoconf_data = get_autoconf_data(ctx)
 
-    tools_data = [make_data, pkg_config_data]
+    tools_data = [make_data, pkg_config_data, autoconf_data]
 
     if ctx.attr.autogen and not ctx.attr.configure_in_place:
         fail("`autogen` requires `configure_in_place = True`. Please update {}".format(
@@ -42,6 +43,7 @@ def _configure_make(ctx):
         ))
 
     copy_results = "##copy_dir_contents_to_dir## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ $$INSTALLDIR$$\n"
+    autoconf_env = " ".join(["{}=\"{}\"".format(key, value) for (key, value) in autoconf_data.env.items()])
 
     attrs = create_attrs(
         ctx.attr,
@@ -50,6 +52,7 @@ def _configure_make(ctx):
         postfix_script = copy_results + "\n" + ctx.attr.postfix_script,
         tools_data = tools_data,
         make_path = make_data.path,
+        autoconf_path = "{} {}autoreconf".format(autoconf_env, autoconf_data.path),
     )
     return cc_external_rule_impl(ctx, attrs)
 
@@ -109,6 +112,7 @@ def _create_configure_script(configureParameters):
         autogen_options = ctx.attr.autogen_options,
         make_commands = make_commands,
         make_path = attrs.make_path,
+        autoconf_path = attrs.autoconf_path,
     )
     return define_install_prefix + configure
 

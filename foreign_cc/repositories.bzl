@@ -14,6 +14,7 @@ def rules_foreign_cc_dependencies(
         ninja_version = "1.11.1",
         meson_version = "1.1.1",
         pkgconfig_version = "0.29.2",
+        autoconf_version = "2.71",
         register_preinstalled_tools = True,
         register_built_tools = True,
         register_toolchains = True,
@@ -76,6 +77,7 @@ def rules_foreign_cc_dependencies(
             ninja_version = ninja_version,
             meson_version = meson_version,
             pkgconfig_version = pkgconfig_version,
+            autoconf_version = autoconf_version,
             register_toolchains = register_toolchains,
             register_built_pkgconfig_toolchain = register_built_pkgconfig_toolchain,
         )
