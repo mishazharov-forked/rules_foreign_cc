@@ -43,7 +43,12 @@ def _configure_make(ctx):
         ))
 
     copy_results = "##copy_dir_contents_to_dir## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ $$INSTALLDIR$$\n"
-    autoconf_env = " ".join(["{}=\"{}\"".format(key, value) for (key, value) in autoconf_data.env.items()])
+
+    env_vars = {}
+    if ctx.attr.autoconf or ctx.attr.autoreconf:
+        env_vars = {
+            "AUTOCONF": autoconf_data.path + "/autoconf",
+        }
 
     attrs = create_attrs(
         ctx.attr,
@@ -52,8 +57,11 @@ def _configure_make(ctx):
         postfix_script = copy_results + "\n" + ctx.attr.postfix_script,
         tools_data = tools_data,
         make_path = make_data.path,
-        autoconf_path = "{} {}autoreconf".format(autoconf_env, autoconf_data.path),
+        autoconf_path = autoconf_data.path + "/autoconf",
+        autoreconf_path = autoconf_data.path + "/autoreconf",
+        env_vars = env_vars,
     )
+
     return cc_external_rule_impl(ctx, attrs)
 
 def _create_configure_script(configureParameters):
@@ -75,6 +83,7 @@ def _create_configure_script(configureParameters):
     ])
 
     user_env = expand_locations_and_make_variables(ctx, ctx.attr.env, "env", data)
+    attrs.env_vars.update(user_env)
 
     make_commands = []
     prefix = "{} ".format(expand_locations_and_make_variables(ctx, attrs.tool_prefix, "tool_prefix", data)) if attrs.tool_prefix else ""
@@ -100,7 +109,7 @@ def _create_configure_script(configureParameters):
         configure_command = ctx.attr.configure_command,
         deps = ctx.attr.deps,
         inputs = inputs,
-        env_vars = user_env,
+        env_vars = attrs.env_vars,
         configure_in_place = ctx.attr.configure_in_place,
         prefix_flag = ctx.attr.prefix_flag,
         autoconf = ctx.attr.autoconf,
@@ -113,6 +122,7 @@ def _create_configure_script(configureParameters):
         make_commands = make_commands,
         make_path = attrs.make_path,
         autoconf_path = attrs.autoconf_path,
+        autoreconf_path = attrs.autoreconf_path,
     )
     return define_install_prefix + configure
 

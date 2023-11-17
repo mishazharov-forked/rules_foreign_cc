@@ -350,14 +350,14 @@ native_tool_toolchain(
     env = select({
         "@platforms//os:windows": {"AUTOCONF": "$(execpath :autoconf_tool)"},
         "//conditions:default": {
-            "AUTOCONF": "$(rootpath :autoconf_tool)/bin/autoconf",
+            "AUTOCONF": "$(execpath :autoconf_tool)/bin/autoconf",
             "AUTOM4TE": "autom4te",
             "trailer_m4": "../../share/autoconf/autoconf/trailer.m4",
         },
     }),
     path = select({
         "@platforms//os:windows": "$(execpath :autoconf_tool)",
-        "//conditions:default": "$(execpath :autoconf_tool)/bin/",
+        "//conditions:default": "$(execpath :autoconf_tool)/bin",
     }),
     target = ":autoconf_tool",
 )
