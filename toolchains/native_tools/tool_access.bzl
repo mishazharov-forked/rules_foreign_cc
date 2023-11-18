@@ -18,7 +18,12 @@ def access_tool(toolchain_type_, ctx):
     fail("No toolchain found for " + toolchain_type_)
 
 def get_autoconf_data(ctx):
-    return _access_and_expect_label_copied(Label("//toolchains:autoconf_toolchain"), ctx)
+    res = {
+        "autoconf": _access_and_expect_label_copied(Label("//toolchains:autoconf_toolchain"), ctx),
+        "autoreconf": _access_and_expect_label_copied(Label("//toolchains:autoreconf_toolchain"), ctx),
+        "autom4te": _access_and_expect_label_copied(Label("//toolchains:autom4te_toolchain"), ctx),
+    }
+    return res
 
 def get_automake_data(ctx):
     return _access_and_expect_label_copied(Label("//toolchains:automake_toolchain"), ctx)

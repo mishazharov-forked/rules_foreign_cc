@@ -24,6 +24,7 @@ def _autoconf_tool_impl(ctx):
         "./configure --prefix=$$INSTALLDIR$$",
         "%s" % make_data.path,
         "%s install" % make_data.path,
+        "sed -i -e 's@args: --prepend-include .*$@args: --prepend-include \\x27\\$\\$EXT_BUILD_ROOT\\$\\$/share/autoconf\\x27@g' $$INSTALLDIR$$/share/autoconf/autom4te.cfg",
     ]
 
     additional_tools = depset(transitive = [make_data.target.files])

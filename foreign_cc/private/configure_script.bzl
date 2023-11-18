@@ -1,6 +1,7 @@
 # buildifier: disable=module-docstring
 load(":make_env_vars.bzl", "get_make_env_vars")
 load(":make_script.bzl", "pkgconfig_script")
+load("@bazel_skylib//lib:paths.bzl", "paths")
 
 # buildifier: disable=function-docstring
 def create_configure_script(
@@ -26,7 +27,8 @@ def create_configure_script(
         make_path,
         make_commands,
         autoconf_path,
-        autoreconf_path):
+        autoreconf_path,
+        autom4te_patch_conf_file):
     ext_build_dirs = inputs.ext_build_dirs
 
     script = pkgconfig_script(ext_build_dirs)
@@ -53,6 +55,15 @@ def create_configure_script(
         ).lstrip())
 
     env_vars_string = " ".join(["{}=\"{}\"".format(key, value) for (key, value) in env_vars.items()])
+
+    if (autoconf or autoreconf) and autom4te_patch_conf_file:
+        autoconf_root = paths.dirname(autom4te_patch_conf_file) + "/../../"
+
+        script.append("sed -i -e 's@{source}'@{dest}@g {file}".format(
+            source = "\\$\\$EXT_BUILD_ROOT\\$\\$",
+            dest = autoconf_root,
+            file = autom4te_patch_conf_file,
+        ))
 
     if autoconf:
         script.append("{env_vars} {autoconf} {options}".format(

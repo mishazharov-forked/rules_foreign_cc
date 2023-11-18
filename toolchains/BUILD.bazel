@@ -5,7 +5,18 @@ load("//foreign_cc/built_tools:meson_build.bzl", "meson_tool")
 load("//foreign_cc/built_tools:ninja_build.bzl", "ninja_tool")
 load("//foreign_cc/built_tools:pkgconfig_build.bzl", "pkgconfig_tool")
 load("//foreign_cc/built_tools:autoconf_build.bzl", "autoconf_tool")
-load("//toolchains:toolchains.bzl", "current_autoconf_toolchain", "current_automake_toolchain", "current_cmake_toolchain", "current_m4_toolchain", "current_make_toolchain", "current_meson_toolchain", "current_ninja_toolchain", "current_pkgconfig_toolchain")
+load("//toolchains:toolchains.bzl",
+     "current_autoconf_toolchain",
+     "current_autoreconf_toolchain",
+     "current_autom4te_toolchain",
+     "current_automake_toolchain",
+     "current_cmake_toolchain",
+     "current_m4_toolchain",
+     "current_make_toolchain",
+     "current_meson_toolchain",
+     "current_ninja_toolchain",
+     "current_pkgconfig_toolchain"
+)
 load("//toolchains/native_tools:native_tools_toolchain.bzl", "native_tool_toolchain")
 
 package(default_visibility = ["//visibility:public"])
@@ -36,6 +47,14 @@ toolchain_type(
 
 toolchain_type(
     name = "autoconf_toolchain",
+)
+
+toolchain_type(
+    name = "autoreconf_toolchain",
+)
+
+toolchain_type(
+    name = "autom4te_toolchain",
 )
 
 toolchain_type(
@@ -74,6 +93,14 @@ current_autoconf_toolchain(
     name = "current_autoconf_toolchain",
 )
 
+current_autoreconf_toolchain(
+    name = "current_autoreconf_toolchain",
+)
+
+current_autom4te_toolchain(
+    name = "current_autom4te_toolchain",
+)
+
 toolchain(
     name = "built_cmake_toolchain",
     toolchain = ":built_cmake",
@@ -108,6 +135,18 @@ toolchain(
     name = "built_autoconf_toolchain",
     toolchain = ":built_autoconf",
     toolchain_type = ":autoconf_toolchain",
+)
+
+toolchain(
+    name = "built_autoreconf_toolchain",
+    toolchain = ":built_autoreconf",
+    toolchain_type = ":autoreconf_toolchain",
+)
+
+toolchain(
+    name = "built_autom4te_toolchain",
+    toolchain = ":built_autom4te",
+    toolchain_type = ":autom4te_toolchain",
 )
 
 # Preinstalled cmake will always be the default, if toolchain with more exact constraints
@@ -345,22 +384,53 @@ autoconf_tool(
     srcs = "@autoconf_src//:all_srcs",
 )
 
+AUTOCONF_TOOL_FAMILY_ENV = {
+    "AUTOCONF": "$$EXT_BUILD_ROOT/$(execpath :autoconf_tool)/bin/autoconf",
+    "AUTOM4TE": "$$EXT_BUILD_ROOT/$(execpath :autoconf_tool)/bin/autom4te",
+    "trailer_m4": "$$EXT_BUILD_ROOT/$(execpath :autoconf_tool)/share/autoconf/autoconf/trailer.m4",
+    "autom4te_perllibdir": "$$EXT_BUILD_ROOT/$(execpath :autoconf_tool)/share/autoconf",
+    "AC_MACRODIR": "$$EXT_BUILD_ROOT/$(execpath :autoconf_tool)/share/autoconf",
+}
+
 native_tool_toolchain(
     name = "built_autoconf",
     env = select({
         "@platforms//os:windows": {"AUTOCONF": "$(execpath :autoconf_tool)"},
-        "//conditions:default": {
-            "AUTOCONF": "$(execpath :autoconf_tool)/bin/autoconf",
-            "AUTOM4TE": "autom4te",
-            "trailer_m4": "../../share/autoconf/autoconf/trailer.m4",
-        },
+        "//conditions:default": AUTOCONF_TOOL_FAMILY_ENV,
     }),
     path = select({
-        "@platforms//os:windows": "$(execpath :autoconf_tool)",
-        "//conditions:default": "$(execpath :autoconf_tool)/bin",
+        "@platforms//os:windows": "unsupported, gl",
+        "//conditions:default": "$(execpath :autoconf_tool)/bin/autoconf",
     }),
     target = ":autoconf_tool",
 )
+
+native_tool_toolchain(
+    name = "built_autoreconf",
+    env = select({
+        "@platforms//os:windows": {"AUTOCONF": "$(execpath :autoconf_tool)"},
+        "//conditions:default": AUTOCONF_TOOL_FAMILY_ENV,
+    }),
+    path = select({
+        "@platforms//os:windows": "unsupported, gl",
+        "//conditions:default": "$(execpath :autoconf_tool)/bin/autoreconf",
+    }),
+    target = ":autoconf_tool",
+)
+
+native_tool_toolchain(
+    name = "built_autom4te",
+    env = select({
+        "@platforms//os:windows": {"AUTOCONF": "$(execpath :autoconf_tool)"},
+        "//conditions:default": AUTOCONF_TOOL_FAMILY_ENV,
+    }),
+    path = select({
+        "@platforms//os:windows": "unsupported, gl",
+        "//conditions:default": "$(execpath :autoconf_tool)/bin/autom4te",
+    }),
+    target = ":autoconf_tool",
+)
+
 
 bzl_library(
     name = "bzl_srcs",

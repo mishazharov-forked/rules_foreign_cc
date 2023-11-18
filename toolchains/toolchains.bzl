@@ -102,6 +102,28 @@ current_autoconf_toolchain = rule(
     ],
 )
 
+current_autoreconf_toolchain = rule(
+    implementation = _current_toolchain_impl,
+    attrs = {
+        "_toolchain": attr.string(default = str(Label("//toolchains:autoreconf_toolchain"))),
+    },
+    incompatible_use_toolchain_transition = True,
+    toolchains = [
+        str(Label("//toolchains:autoreconf_toolchain")),
+    ],
+)
+
+current_autom4te_toolchain = rule(
+    implementation = _current_toolchain_impl,
+    attrs = {
+        "_toolchain": attr.string(default = str(Label("//toolchains:autom4te_toolchain"))),
+    },
+    incompatible_use_toolchain_transition = True,
+    toolchains = [
+        str(Label("//toolchains:autom4te_toolchain")),
+    ],
+)
+
 current_automake_toolchain = rule(
     implementation = _current_toolchain_impl,
     attrs = {

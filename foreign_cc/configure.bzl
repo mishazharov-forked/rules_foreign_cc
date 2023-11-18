@@ -19,13 +19,14 @@ load(
 )
 load("//foreign_cc/private:transitions.bzl", "foreign_cc_rule_variant")
 load("//toolchains/native_tools:tool_access.bzl", "get_make_data", "get_pkgconfig_data", "get_autoconf_data")
+load("@bazel_skylib//lib:paths.bzl", "paths")
 
 def _configure_make(ctx):
     make_data = get_make_data(ctx)
     pkg_config_data = get_pkgconfig_data(ctx)
-    autoconf_data = get_autoconf_data(ctx)
+    autoconf_tools_data = get_autoconf_data(ctx)
 
-    tools_data = [make_data, pkg_config_data, autoconf_data]
+    tools_data = [make_data, pkg_config_data] + autoconf_tools_data.values()
 
     if ctx.attr.autogen and not ctx.attr.configure_in_place:
         fail("`autogen` requires `configure_in_place = True`. Please update {}".format(
@@ -44,11 +45,15 @@ def _configure_make(ctx):
 
     copy_results = "##copy_dir_contents_to_dir## $$BUILD_TMPDIR$$/$$INSTALL_PREFIX$$ $$INSTALLDIR$$\n"
 
+    autom4te_patch_conf_file = False
+
     env_vars = {}
     if ctx.attr.autoconf or ctx.attr.autoreconf:
-        env_vars = {
-            "AUTOCONF": autoconf_data.path + "/autoconf",
-        }
+        env_vars = autoconf_tools_data["autoconf"].env
+
+        if autoconf_tools_data["autom4te"].target:
+            autom4te_patch_conf_file = paths.dirname(autoconf_tools_data["autoconf"].path) + "/../share/autoconf/autom4te.cfg"
+            autom4te_patch_conf_file = paths.normalize(autom4te_patch_conf_file)
 
     attrs = create_attrs(
         ctx.attr,
@@ -57,8 +62,9 @@ def _configure_make(ctx):
         postfix_script = copy_results + "\n" + ctx.attr.postfix_script,
         tools_data = tools_data,
         make_path = make_data.path,
-        autoconf_path = autoconf_data.path + "/autoconf",
-        autoreconf_path = autoconf_data.path + "/autoreconf",
+        autoconf_path = autoconf_tools_data["autoconf"].path,
+        autoreconf_path = autoconf_tools_data["autoreconf"].path,
+        autom4te_patch_conf_file = autom4te_patch_conf_file,
         env_vars = env_vars,
     )
 
@@ -82,8 +88,7 @@ def _create_configure_script(configureParameters):
         for arg in ctx.attr.args
     ])
 
-    user_env = expand_locations_and_make_variables(ctx, ctx.attr.env, "env", data)
-    attrs.env_vars.update(user_env)
+    user_env = expand_locations_and_make_variables(ctx, attrs.env_vars | ctx.attr.env, "env", data)
 
     make_commands = []
     prefix = "{} ".format(expand_locations_and_make_variables(ctx, attrs.tool_prefix, "tool_prefix", data)) if attrs.tool_prefix else ""
@@ -109,7 +114,7 @@ def _create_configure_script(configureParameters):
         configure_command = ctx.attr.configure_command,
         deps = ctx.attr.deps,
         inputs = inputs,
-        env_vars = attrs.env_vars,
+        env_vars = user_env,
         configure_in_place = ctx.attr.configure_in_place,
         prefix_flag = ctx.attr.prefix_flag,
         autoconf = ctx.attr.autoconf,
@@ -123,6 +128,7 @@ def _create_configure_script(configureParameters):
         make_path = attrs.make_path,
         autoconf_path = attrs.autoconf_path,
         autoreconf_path = attrs.autoreconf_path,
+        autom4te_patch_conf_file = attrs.autom4te_patch_conf_file,
     )
     return define_install_prefix + configure
 
@@ -241,6 +247,8 @@ configure_make = rule(
     implementation = _configure_make,
     toolchains = [
         "@rules_foreign_cc//toolchains:autoconf_toolchain",
+        "@rules_foreign_cc//toolchains:autoreconf_toolchain",
+        "@rules_foreign_cc//toolchains:autom4te_toolchain",
         "@rules_foreign_cc//toolchains:automake_toolchain",
         "@rules_foreign_cc//toolchains:make_toolchain",
         "@rules_foreign_cc//toolchains:m4_toolchain",

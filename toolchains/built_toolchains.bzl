@@ -26,7 +26,7 @@ filegroup(
 """
 
 # buildifier: disable=unnamed-macro
-def built_toolchains(cmake_version, make_version, ninja_version, meson_version, pkgconfig_version, autoconf_version, register_toolchains, register_built_pkgconfig_toolchain):
+def built_toolchains(cmake_version, make_version, ninja_version, meson_version, pkgconfig_version, autoconf_version, register_toolchains, register_built_pkgconfig_toolchain, register_built_autoconf_toolchain):
     """
     Register toolchains for built tools that will be built from source
 
@@ -50,10 +50,12 @@ def built_toolchains(cmake_version, make_version, ninja_version, meson_version, 
     _make_toolchain(make_version, register_toolchains)
     _ninja_toolchain(ninja_version, register_toolchains)
     _meson_toolchain(meson_version, register_toolchains)
-    _autoconf_toolchain(autoconf_version, register_toolchains)
 
     if register_built_pkgconfig_toolchain:
         _pkgconfig_toolchain(pkgconfig_version, register_toolchains)
+
+    if register_built_autoconf_toolchain:
+        _autoconf_tools_toolchain(autoconf_version, register_toolchains)
 
 def _cmake_toolchain(version, register_toolchains):
     if register_toolchains:
@@ -286,10 +288,16 @@ cc_import(
 
     fail("Unsupported pkgconfig version: " + str(version))
 
-def _autoconf_toolchain(version, register_toolchains):
+def _autoconf_tools_toolchain(version, register_toolchains):
     if register_toolchains:
         native.register_toolchains(
             "@rules_foreign_cc//toolchains:built_autoconf_toolchain",
+        )
+        native.register_toolchains(
+            "@rules_foreign_cc//toolchains:built_autoreconf_toolchain",
+        )
+        native.register_toolchains(
+            "@rules_foreign_cc//toolchains:built_autom4te_toolchain",
         )
     if version == "2.71":
         maybe(
