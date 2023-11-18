@@ -58,6 +58,7 @@ def create_configure_script(
 
     if (autoconf or autoreconf) and autom4te_patch_conf_file:
         autoconf_root = paths.dirname(autom4te_patch_conf_file) + "/../../"
+        autoconf_root = paths.normalize(autoconf_root)
 
         script.append("sed -i -e 's@{source}'@{dest}@g {file}".format(
             source = "\\$\\$EXT_BUILD_ROOT\\$\\$",

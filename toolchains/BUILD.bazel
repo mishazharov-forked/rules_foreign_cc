@@ -387,6 +387,7 @@ autoconf_tool(
 AUTOCONF_TOOL_FAMILY_ENV = {
     "AUTOCONF": "$$EXT_BUILD_ROOT/$(execpath :autoconf_tool)/bin/autoconf",
     "AUTOM4TE": "$$EXT_BUILD_ROOT/$(execpath :autoconf_tool)/bin/autom4te",
+    "AUTOHEADER": "$$EXT_BUILD_ROOT/$(execpath :autoconf_tool)/bin/autoheader",
     "trailer_m4": "$$EXT_BUILD_ROOT/$(execpath :autoconf_tool)/share/autoconf/autoconf/trailer.m4",
     "autom4te_perllibdir": "$$EXT_BUILD_ROOT/$(execpath :autoconf_tool)/share/autoconf",
     "AC_MACRODIR": "$$EXT_BUILD_ROOT/$(execpath :autoconf_tool)/share/autoconf",
